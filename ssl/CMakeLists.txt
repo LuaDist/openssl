@@ -25,4 +25,4 @@ target_link_libraries(ssl crypto)
 
 install(FILES ssl.h ssl2.h ssl3.h ssl23.h tls1.h dtls1.h kssl.h
         DESTINATION ${INSTALL_INC}/openssl)
-install(TARGETS ssl DESTINATION ${INSTALL_LIB})
+install(TARGETS ssl RUNTIME DESTINATION ${INSTALL_BIN} LIBRARY DESTINATION ${INSTALL_LIB} ARCHIVE DESTINATION ${INSTALL_LIB})
