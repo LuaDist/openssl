@@ -12,7 +12,11 @@ if (WIN32 AND NOT CYGWIN)
    add_definitions(-DOPENSSL_SYSNAME_WIN32)
    add_definitions(-DWIN32_LEAN_AND_MEAN) # avoid conflict: ocsp.h and wincrypt.h
    add_definitions(-D_WINDLL) # build shared library symbols
-endif(WIN32 AND NOT CYGWIN)
+endif()
+
+if (MINGW)
+	set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--export-all")
+endif()
 
 add_subdirectory(crypto)
 

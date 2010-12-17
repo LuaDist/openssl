@@ -21,9 +21,9 @@ file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/opensslconf.h.cmake "${CONF}")
 #~2DO: set BUILDINF_DATE to `date LC_ALL=C LC_TIME=C`
 configure_file(buildinf.h.cmake buildinf.h)
 
-if(WIN32 AND NOT CYGWIN)
+if(WIN32 AND MINGW AND NOT CYGWIN)
 	set(OPENSSL_EXPORT_VAR_AS_FUNCTION true)
-endif(WIN32 AND NOT CYGWIN)
+endif()
 configure_file(${CMAKE_CURRENT_BINARY_DIR}/opensslconf.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/openssl/opensslconf.h)
 
 set(LIBSRC cryptlib.c mem.c mem_clr.c mem_dbg.c cversion.c ex_data.c
@@ -265,8 +265,8 @@ add_submodule(.
 add_library(crypto SHARED ${LIBSRC} ${OBJECTS_SRC} crypto.def)
 
 if(WIN32 AND NOT CYGWIN)
-	target_link_libraries(crypto ws2_32.lib crypt32.lib)
-endif(WIN32 AND NOT CYGWIN)
+	target_link_libraries(crypto ws2_32 crypt32)
+endif()
 
 install(FILES ${EXHEADERS} DESTINATION ${INSTALL_INC}/openssl)
 install(TARGETS crypto RUNTIME DESTINATION ${INSTALL_BIN} LIBRARY DESTINATION ${INSTALL_LIB} ARCHIVE DESTINATION ${INSTALL_LIB})
