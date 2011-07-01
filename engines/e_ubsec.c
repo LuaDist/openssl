@@ -302,8 +302,8 @@ static t_UBSEC_diffie_hellman_generate_ioctl
 	*p_UBSEC_diffie_hellman_generate_ioctl = NULL;
 static t_UBSEC_diffie_hellman_agree_ioctl *p_UBSEC_diffie_hellman_agree_ioctl = NULL;
 #endif
-static t_UBSEC_rsa_mod_exp_ioctl *p_UBSEC_rsa_mod_exp_ioctl = NULL;
 #ifndef OPENSSL_NO_RSA
+static t_UBSEC_rsa_mod_exp_ioctl *p_UBSEC_rsa_mod_exp_ioctl = NULL;
 static t_UBSEC_rsa_mod_exp_crt_ioctl *p_UBSEC_rsa_mod_exp_crt_ioctl = NULL;
 #endif
 #ifndef OPENSSL_NO_DSA
@@ -630,10 +630,8 @@ static int ubsec_mod_exp_crt(BIGNUM *r, const BIGNUM *a, const BIGNUM *p,
 			const BIGNUM *dq, const BIGNUM *qinv, BN_CTX *ctx)
 	{
 	int	y_len,
-		m_len,
 		fd;
 
-	m_len = BN_num_bytes(p) + BN_num_bytes(q) + 1;
 	y_len = BN_num_bits(p) + BN_num_bits(q);
 
 	/* Check if hardware can't handle this argument. */

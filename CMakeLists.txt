@@ -8,6 +8,7 @@ project(openssl C)
 CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 INCLUDE(dist.cmake)
 
+add_definitions(-DOPENSSL_NO_ASM)
 if (WIN32 AND NOT CYGWIN)
    add_definitions(-DOPENSSL_SYSNAME_WIN32)
    add_definitions(-DWIN32_LEAN_AND_MEAN) # avoid conflict: ocsp.h and wincrypt.h

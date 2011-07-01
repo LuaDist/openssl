@@ -28,18 +28,14 @@ $!
 $!  P6	if defined, denotes which engines to build.  If not defined,
 $!	all available engines are built.
 $!
+$!  For 64 bit architectures (Alpha and IA64), specify the pointer size as P7.
+$!  For 32 bit architectures (VAX), P7 is ignored.
+$!  Currently supported values are:
+$!
+$!	32	To ge a library compiled with /POINTER_SIZE=32
+$!	64	To ge a library compiled with /POINTER_SIZE=64
+$!
 $!-----------------------------------------------------------------------------
-$!
-$! Set the names of the engines we want to build
-$! NOTE: Some might think this list ugly.  However, it's made this way to
-$! reflect the LIBNAMES variable in Makefile as closely as possible,
-$! thereby making it fairly easy to verify that the lists are the same.
-$! NOTE: gmp isn't built, as it's mostly a test engine and brings in another
-$! library that isn't necessarely ported to VMS.
-$!
-$ ENGINES = "," + P6
-$ IF ENGINES .EQS. "," THEN -
-	ENGINES = ",4758cca,aep,atalla,cswift,chil,nuron,sureware,ubsec,padlock,ccgost"
 $!
 $! Set the default TCP/IP library to link against if needed
 $!
@@ -52,7 +48,7 @@ $ THEN
 $!
 $!  The Architecture Is VAX.
 $!
-$   ARCH := VAX
+$   ARCH = "VAX"
 $!
 $! Else...
 $!
@@ -67,7 +63,23 @@ $! End The Architecture Check.
 $!
 $ ENDIF
 $!
-$! Set the goal directories, and creat them if necessary
+$! Set the names of the engines we want to build
+$! NOTE: Some might think this list ugly.  However, it's made this way to
+$! reflect the LIBNAMES variable in Makefile as closely as possible,
+$! thereby making it fairly easy to verify that the lists are the same.
+$! NOTE: gmp isn't built, as it's mostly a test engine and brings in another
+$! library that isn't necessarely ported to VMS.
+$!
+$ ENGINES = "," + P6
+$ IF ENGINES .EQS. "," THEN -
+	ENGINES = ",4758cca,aep,atalla,cswift,chil,nuron,sureware,ubsec,padlock,"
+$!
+$! GOST requires a 64-bit integer type, unavailable on VAX.
+$!
+$ IF (ARCH .NES. "VAX") THEN -
+       ENGINES = ENGINES+ ",ccgost"
+$!
+$! Set the goal directories, and create them if necessary
 $!
 $ OBJ_DIR := SYS$DISK:[-.'ARCH'.OBJ.ENGINES]
 $ EXE_DIR := SYS$DISK:[-.'ARCH'.EXE.ENGINES]
@@ -76,7 +88,7 @@ $ IF F$PARSE(EXE_DIR) .EQS. "" THEN CREATE/DIRECTORY 'EXE_DIR'
 $!
 $! Set the goal files, and create them if necessary
 $!
-$ CRYPTO_LIB :=SYS$DISK:[-.'ARCH'.EXE.CRYPTO]LIBCRYPTO.OLB
+$ CRYPTO_LIB :=SYS$DISK:[-.'ARCH'.EXE.CRYPTO]LIBCRYPTO'LIB32'.OLB
 $ IF F$SEARCH(CRYPTO_LIB) .EQS. "" THEN LIBRARY/CREATE/OBJECT 'CRYPTO_LIB'
 $!
 $! OK, time to check options and initialise
@@ -87,6 +99,7 @@ $ OPT_DEBUG = P2
 $ OPT_COMPILER = P3
 $ OPT_TCPIP_LIB = P4
 $ OPT_SPECIAL_THREADS = P5
+$ OPT_POINTER_SIZE = P7
 $
 $ GOSUB CHECK_OPTIONS
 $ GOSUB INITIALISE
@@ -110,7 +123,7 @@ $ ENGINE_chil = "e_chil"
 $ ENGINE_nuron = "e_nuron"
 $ ENGINE_sureware = "e_sureware"
 $ ENGINE_ubsec = "e_ubsec"
-$ ENGINE_ubsec = "e_padlock"
+$ ENGINE_padlock = "e_padlock"
 $
 $ ENGINE_ccgost_SUBDIR = "ccgost"
 $ ENGINE_ccgost = "e_gost_err,gost2001_keyx,gost2001,gost89,gost94_keyx,"+ -
@@ -163,9 +176,12 @@ $ ELSE
 $   WRITE SYS$OUTPUT "Compiling Support Files. (",BUILDALL,")"
 $ ENDIF
 $!
-$!  Create a .OPT file for the object files
+$! Create a .OPT file for the object files (for a real engine name).
 $!
-$ OPEN/WRITE OBJECTS 'EXE_DIR''ENGINE_NAME'.OPT
+$ IF ENGINE_NAME .NES. ""
+$ THEN
+$   OPEN/WRITE OBJECTS 'EXE_DIR''ENGINE_NAME'.OPT
+$ ENDIF
 $!
 $! Here's the start of per-engine module loop.
 $!
@@ -217,22 +233,27 @@ $   MACRO/OBJECT='OBJECT_FILE' 'SOURCE_FILE'
 $ ELSE
 $   CC/OBJECT='OBJECT_FILE' 'SOURCE_FILE'
 $ ENDIF
-$ WRITE OBJECTS OBJECT_FILE
+$!
+$! Write the entry to the .OPT file (for a real engine name).
+$!
+$ IF ENGINE_NAME .NES. ""
+$ THEN
+$   WRITE OBJECTS OBJECT_FILE
+$ ENDIF
 $!
 $! Next file
 $!
 $ GOTO FILE_NEXT
 $!
 $ FILE_DONE:
+$!
+$! Do not link the support files.
+$!
+$ IF ENGINE_NAME .EQS. "" THEN GOTO ENGINE_NEXT
+$!
+$! Close the linker options file (for a real engine name).
+$!
 $ CLOSE OBJECTS
-$!
-$! Do not link the support files.
-$!
-$ IF ENGINE_NAME .EQS. "" THEN GOTO ENGINE_NEXT
-$!
-$! Do not link the support files.
-$!
-$ IF ENGINE_NAME .EQS. "" THEN GOTO ENGINE_NEXT
 $!
 $! Now, there are two ways to handle this.  We can either build 
 $! shareable images or stick the engine object file into libcrypto.
@@ -412,13 +433,13 @@ $! Else...
 $!
 $ ELSE
 $!
-$!  Else, Check To See If OPT_PHASE Has A Valid Arguement.
+$!  Else, Check To See If OPT_PHASE Has A Valid Argument.
 $!
 $   IF ("," + ACCEPT_PHASE + ",") - ("," + OPT_PHASE + ",") -
        .NES. ("," + ACCEPT_PHASE + ",")
 $   THEN
 $!
-$!    A Valid Arguement.
+$!    A Valid Argument.
 $!
 $     BUILDALL = OPT_PHASE
 $!
@@ -449,7 +470,7 @@ $!    Time To EXIT.
 $!
 $     EXIT
 $!
-$!  End The Valid Arguement Check.
+$!  End The Valid Argument Check.
 $!
 $   ENDIF
 $!
@@ -502,7 +523,7 @@ $!    Time To EXIT.
 $!
 $     EXIT
 $!
-$!  End The Valid Arguement Check.
+$!  End The Valid Argument Check.
 $!
 $   ENDIF
 $!
@@ -541,6 +562,58 @@ $!
 $   ENDIF
 $!
 $! End The OPT_SPECIAL_THREADS Check.
+$!
+$ ENDIF
+$!
+$! Check To See If OPT_POINTER_SIZE Is Blank.
+$!
+$ IF (OPT_POINTER_SIZE.EQS."")
+$ THEN
+$   POINTER_SIZE = ""
+$ ELSE
+$!
+$!  Check is OPT_POINTER_SIZE Is Valid
+$!
+$   IF (OPT_POINTER_SIZE.EQS."32")
+$   THEN
+$     POINTER_SIZE = "/POINTER_SIZE=32"
+$     IF ARCH .EQS. "VAX"
+$     THEN
+$       LIB32 = ""
+$     ELSE
+$       LIB32 = "32"
+$     ENDIF
+$   ELSE
+$     IF (OPT_POINTER_SIZE.EQS."64")
+$     THEN
+$       LIB32 = ""
+$       IF ARCH .EQS. "VAX"
+$       THEN
+$         POINTER_SIZE = "/POINTER_SIZE=32"
+$       ELSE
+$         POINTER_SIZE = "/POINTER_SIZE=64"
+$       ENDIF
+$     ELSE
+$!
+$!      Tell The User Entered An Invalid Option..
+$!
+$       WRITE SYS$OUTPUT ""
+$       WRITE SYS$OUTPUT "The Option ",OPT_POINTER_SIZE," Is Invalid.  The Valid Options Are:"
+$       WRITE SYS$OUTPUT ""
+$       WRITE SYS$OUTPUT "    32  :  Compile with 32 bit pointer size"
+$       WRITE SYS$OUTPUT "    64  :  Compile with 64 bit pointer size"
+$       WRITE SYS$OUTPUT ""
+$!
+$!      Time To EXIT.
+$!
+$       GOTO TIDY
+$!
+$!      End The Valid Arguement Check.
+$!
+$     ENDIF
+$   ENDIF
+$!
+$! End The OPT_POINTER_SIZE Check.
 $!
 $ ENDIF
 $!
@@ -671,7 +744,7 @@ $!
 $     CC = "CC"
 $     IF ARCH.EQS."VAX" .AND. F$TRNLNM("DECC$CC_DEFAULT").NES."/DECC" -
 	 THEN CC = "CC/DECC"
-$     CC = CC + "/''CC_OPTIMIZE'/''DEBUGGER'/STANDARD=ANSI89" + -
+$     CC = CC + "/''CC_OPTIMIZE'/''DEBUGGER'/STANDARD=ANSI89''POINTER_SIZE'" + -
            "/NOLIST/PREFIX=ALL" + -
 	   "/INCLUDE=(SYS$DISK:[],SYS$DISK:[.VENDOR_DEFNS])" + -
 	   CCEXTRAFLAGS
@@ -707,7 +780,7 @@ $	EXIT
 $     ENDIF
 $     IF F$TRNLNM("DECC$CC_DEFAULT").EQS."/DECC" THEN CC = "CC/VAXC"
 $     CC = CC + "/''CC_OPTIMIZE'/''DEBUGGER'/NOLIST" + -
-	   "/INCLUDE=(SYS$DISK:[],SYS$DISK:[-],SYS$DISK:[.ENGINE.VENDOR_DEFNS])" + -
+	   "/INCLUDE=(SYS$DISK:[],SYS$DISK:[-],SYS$DISK:[.VENDOR_DEFNS])" + -
 	   CCEXTRAFLAGS
 $     CCDEFS = """VAXC""," + CCDEFS
 $!
@@ -739,7 +812,7 @@ $!
 $!    Use GNU C...
 $!
 $     CC = "GCC/NOCASE_HACK/''GCC_OPTIMIZE'/''DEBUGGER'/NOLIST" + -
-	   "/INCLUDE=(SYS$DISK:[],SYS$DISK:[-],SYS$DISK:[.ENGINE.VENDOR_DEFNS])" + -
+	   "/INCLUDE=(SYS$DISK:[],SYS$DISK:[-],SYS$DISK:[.VENDOR_DEFNS])" + -
 	   CCEXTRAFLAGS
 $!
 $!    Define The Linker Options File Name.
@@ -771,7 +844,7 @@ $!  Show user the result
 $!
 $   WRITE/SYMBOL SYS$OUTPUT "Main C Compiling Command: ",CC
 $!
-$!  Else The User Entered An Invalid Arguement.
+$!  Else The User Entered An Invalid Argument.
 $!
 $ ELSE
 $!
@@ -789,7 +862,7 @@ $!  Time To EXIT.
 $!
 $   EXIT
 $!
-$! End The Valid Arguement Check.
+$! End The Valid Argument Check.
 $!
 $ ENDIF
 $!
@@ -885,7 +958,7 @@ $!  Print info
 $!
 $   WRITE SYS$OUTPUT "TCP/IP library spec: ", TCPIP_LIB
 $!
-$!  Else The User Entered An Invalid Arguement.
+$!  Else The User Entered An Invalid Argument.
 $!
 $ ELSE
 $!
