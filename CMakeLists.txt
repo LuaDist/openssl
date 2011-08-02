@@ -28,7 +28,7 @@ add_subdirectory(apps)
 install(FILES e_os2.h DESTINATION ${INSTALL_INC}/openssl)
 install(PROGRAMS tools/c_hash tools/c_info tools/c_issuer tools/c_name
         DESTINATION ${INSTALL_DATA})
-install(PROGRAMS tools/c_rehash DESTINATION ${INSTALL_BIN})
+install(PROGRAMS tools/c_rehash DESTINATION ${INSTALL_FOO})
 install(DIRECTORY doc DESTINATION ${INSTALL_DOC})
 install(FILES FAQ LICENSE PROBLEMS README README.ASN1 README.ENGINE
         DESTINATION ${INSTALL_DATA})
