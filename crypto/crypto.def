@@ -1,10 +1,3 @@
-; perl util/mkdef.pl  32 crypto > crypto.def
-;
-; Definition file for the DLL version of the crypto library from OpenSSL
-;
-
-LIBRARY         crypto32	
-
 EXPORTS
     SSLeay                                  @1
     ACCESS_DESCRIPTION_free                 @1994
