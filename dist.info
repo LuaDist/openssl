@@ -4,6 +4,7 @@ name = "openssl"
 version = "1.0.0d"
 
 desc = "Open Source toolkit implementing the Secure Sockets Layer (SSL v2/v3) and Transport Layer Security (TLS v1) protocols as well as a general purpose cryptography library."
+author = "The OpenSSL Project"
 license = "Apache-style"
 url = "http://www.openssl.org/"
 maintainer = "Peter Kapec, Peter Drahos"

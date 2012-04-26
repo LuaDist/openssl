@@ -1,4 +1,4 @@
-# Copyright (C) 2007-2009 LuaDist.
+# Copyright (C) 2007-2012 LuaDist.
 # Submitted by David Manura
 # Redistribution and use of this file is allowed according to the terms of the MIT license.
 # For details see the COPYRIGHT file distributed with LuaDist.
@@ -24,5 +24,5 @@ set(E_SRC
 add_executable(openssl ${E_SRC})
 target_link_libraries(openssl crypto ssl)
 
-install(TARGETS openssl RUNTIME DESTINATION ${INSTALL_BIN})
-install(PROGRAMS CA.sh CA.pl tsget DESTINATION ${INSTALL_DATA})
+install_executable ( openssl )
+install_data ( CA.sh CA.pl tsget ) # program

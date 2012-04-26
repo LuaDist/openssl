@@ -1,4 +1,4 @@
-# Copyright (C) 2007-2009 LuaDist.
+# Copyright (C) 2007-2012 LuaDist.
 # Submitted by David Manura
 # Redistribution and use of this file is allowed according to the terms of the MIT license.
 # For details see the COPYRIGHT file distributed with LuaDist.
@@ -20,9 +20,8 @@ set(LIBSRC
 	ssl_asn1.c ssl_txt.c ssl_algs.c
 	bio_ssl.c ssl_err.c kssl.c t1_reneg.c )
 
-add_library(ssl SHARED ${LIBSRC} ssl.def)
+add_library(ssl ${LIBSRC} ssl.def)
 target_link_libraries(ssl crypto)
 
-install(FILES ssl.h ssl2.h ssl3.h ssl23.h tls1.h dtls1.h kssl.h
-        DESTINATION ${INSTALL_INC}/openssl)
-install(TARGETS ssl RUNTIME DESTINATION ${INSTALL_BIN} LIBRARY DESTINATION ${INSTALL_LIB} ARCHIVE DESTINATION ${INSTALL_LIB})
+install_header ( ssl.h ssl2.h ssl3.h ssl23.h tls1.h dtls1.h kssl.h INTO openssl)
+install_library ( ssl )

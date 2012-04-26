@@ -1,4 +1,4 @@
-# Copyright (C) 2007-2009 LuaDist.
+# Copyright (C) 2007-2012 LuaDist.
 # Submitted by David Manura
 # Redistribution and use of this file is allowed according to the terms of the MIT license.
 # For details see the COPYRIGHT file distributed with LuaDist.
@@ -31,13 +31,14 @@ set(LIBSRC cryptlib.c mem.c mem_clr.c mem_dbg.c cversion.c ex_data.c
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR} .. ../include . asn1 evp)
 
-add_definitions(-DOPENSSL_BUILD_SHLIBCRYPTO) # for shared library
+if ( BUILD_SHARED_LIBS )
+  add_definitions(-DOPENSSL_BUILD_SHLIBCRYPTO) # for shared library
+endif ()
 
 # dist.cmake handles this
 #set(CMAKE_MODULE_PATH ..)
 
 set(EXHEADERS )
-include(CMakeMacroParseArguments)
 macro(add_submodule dir)
 	parse_arguments(ARG "EXHEADERS" "" ${ARGN})
 	foreach(name ${ARG_DEFAULT_ARGS})
@@ -262,14 +263,11 @@ add_submodule(.
 	EXHEADERS crypto.h opensslv.h opensslconf.h ebcdic.h symhacks.h
 	ossl_typ.h )
 
-add_library(crypto SHARED ${LIBSRC} ${OBJECTS_SRC} crypto.def)
+add_library(crypto ${LIBSRC} ${OBJECTS_SRC} crypto.def)
 
 if(WIN32 AND NOT CYGWIN)
 	target_link_libraries(crypto ws2_32 crypt32)
 endif()
 
-install(FILES ${EXHEADERS} DESTINATION ${INSTALL_INC}/openssl)
-install(TARGETS crypto RUNTIME DESTINATION ${INSTALL_BIN} LIBRARY DESTINATION ${INSTALL_LIB} ARCHIVE DESTINATION ${INSTALL_LIB})
-
-
-
+install_header ( ${EXHEADERS} INTO openssl )
+install_library ( crypto )
