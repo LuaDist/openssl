@@ -17,10 +17,6 @@ if ( WIN32 AND NOT CYGWIN )
   # build shared library symbols
 endif ( )
 
-if ( MINGW )
-  set ( CMAKE_SHARED_LINKER_FLAGS "-Wl,--export-all" )
-endif ( )
-
 add_subdirectory ( crypto )
 add_subdirectory ( ssl )
 add_subdirectory ( apps )

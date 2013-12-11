@@ -2869,6 +2869,8 @@ EXPORTS
     X509_verify                             @678
     X509_verify_cert                        @679
     X509_verify_cert_error_string           @680
+    X509_subject_name_hash_old
+    X509_issuer_name_hash_old
     X509at_add1_attr                        @2197
     X509at_add1_attr_by_NID                 @2211
     X509at_add1_attr_by_OBJ                 @2216
